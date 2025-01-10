@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Configurator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+       body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: #f0f0f0;
+            color: #fff;
+            margin: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+         .clear-all-button {
+             padding: 10px 20px;
+             border: 1px solid #a3f65b;
+             border-radius: 5px;
+             background-color: #001f3f; /* Navy background */
+             color: #a3f65b; /* Lime Green text */
+            cursor: pointer;
+            margin-top: 20px; /* Add margin at the top */
+            align-self: center; /* Center horizontally */
+            transition: background-color 0.3s ease, color 0.3s ease;
+            margin-bottom: 20px; /* Add margin at the bottom */
+         }
+      
+         .clear-all-button:hover {
+          background-color: rgba(163, 246, 91, 0.2);
+         }
+
+
+        .configurator-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: flex-start;
+        }
+
+        .capability-panel {
+            background-color: #001f3f;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+            flex: 1 1 300px;
+            min-width: 300px;
+             position: relative; /* Add relative positioning for the panel */
+        }
+
+        .capability-title {
+            font-size: 1.5em;
+            margin-bottom: 15px;
+            margin-top: 0;/* Remove top padding */
+              color: #a3f65b; /* Lime green panel titles */
+        }
+
+        .options-container {
+          display: flex;
+          flex-wrap: wrap;
+           justify-content: center;
+           gap: 5px; /* Space between buttons */
+           padding-left: 10px; /* Left padding */
+           padding-right: 10px; /* Right padding */
+        }
+        .option-button {
+            display: inline-block;
+            padding: 8px 12px;
+            margin: 5px;
+              border: 1px solid white; /* White button border */
+            border-radius: 5px;
+            background-color: transparent;
+             color: white; /* White button text */
+            cursor: pointer;
+            transition: background-color 0.3s ease, color 0.3s ease;
+           box-sizing: border-box;
+        }
+
+        .option-button:hover {
+           background-color: rgba(163, 246, 91, 0.2);
+        }
+
+
+        .option-button.selected {
+           background-color: #a3f65b; /* Lime Green button fill */
+          border: 1px solid #a3f65b; /* Lime Green button border */
+            color: #001f3f; /* Navy button text when selected */
+        }
+
+        .option-button:disabled {
+             border-color: grey; /* grey border */
+            opacity: 0.6;
+            cursor: not-allowed;
+             color: grey; /* Grey text when disabled */
+           background-color: rgba(163, 246, 91, 0.05);
+        }
+
+         .specification {
+          margin-top: 10px;
+          padding: 10px;
+          /*border: 1px solid #a3f65b;*/
+          border-radius: 5px;
+          text-align: center;
+          font-style: italic;
+          color: #a3f65b;
+        }
+
+
+        .gauge-wrapper {
+          display: flex;
+          align-items: center;
+           margin-top: 10px;
+          }
+
+        .gauge-container {
+            width: 100%;
+            height: 8px; /* Adjust gauge height as needed */
+             position: relative;
+            margin-left: 10px;
+          flex: 1; /* allow gauge to use available space */
+        }
+
+
+         .gauge-title {
+            margin-right: 10px;
+             color: #a3f65b;
+            white-space: nowrap;
+          }
+
+        .gauge-bg {
+           position: absolute;
+           left: 0;
+           top: 50%;
+           transform: translateY(-50%);
+           width: 100%;
+           height: 100%;
+           background-color: #fff;
+           border-radius: 4px;
+          }
+      
+         .gauge-bar {
+           position: absolute;
+           left: 0;
+           top: 50%;
+           transform: translateY(-50%);
+           height: 100%;
+           background-color: #a3f65b;
+           border-radius: 4px;
+         }
+
+        .gauge-label {
+            margin-left: 5px;
+             color: #a3f65b;
+             white-space: nowrap;
+        }
+
+    .summary-container {
+        display: flex;
+        flex-wrap: wrap; /* Allow wrapping for smaller screens */
+        gap: 20px; /* Space between panels */
+        margin-top: 20px;
+        width: 100%;
+        justify-content: center; /* Center the panels */
+     }
+
+     .summary-panel {
+          background-color: #001f3f;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+           flex: 1 1 400px; /* Makes each panel take up available space, with a minimum width */
+           min-width: 300px;
+           display: flex;
+           flex-direction: column; /* allows to align title and table */
+        }
+
+        .configuration-title {
+              font-size: 1.5em;
+            margin-bottom: 15px;
+            margin-top: 0;
+            color: #a3f65b;
+            text-align: center; /* Center the title */
+         }
+
+       .configuration-table {
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+         .configuration-table th, .configuration-table td {
+            padding: 8px;
+             text-align: left;
+             color: #fff;
+
+         }
+
+         .configuration-table th {
+              background-color: #003366; /* Slightly darker navy */
+              color: #a3f65b;
+            text-align: center;
+        }
+
+
+        @media (max-width: 768px) {
+            .configurator-container {
+                flex-direction: column;
+            }
+            .summary-container {
+              flex-direction: column; /* Stack panels vertically on small screens */
+            }
+        }
+        
+        .configuration-table td {
+          border-bottom: 1px solid #a3f65b;
+          padding: 10px;
+        }
+
+         .configuration-table tr:last-child td {
+             border-bottom: none; /* Remove the bottom border from the last row */
+           }
+         .chart-container {
+             width: 400px; /* Adjust as needed */
+            height: 400px; /* Adjust as needed */
+             margin: 20px auto; /* Center the chart */
+          }
+
+    </style>
+</head>
+<body>
+    <div class="configurator-container">
+         <!-- Capability Panels will be added dynamically here -->
+    </div>
+ <div class="summary-container">
+    <div class="summary-panel">
+        <h2 class="configuration-title">Configuration Summary</h2>
+           <table class="configuration-table">
+            <thead>
+                <tr>
+                    <th>Capability</th>
+                    <th>Option</th>
+                    <th>Value</th>
+                </tr>
+            </thead>
+            <tbody class="configuration-table-body">
+            </tbody>
+        </table>
+    </div>
+     <div class="summary-panel">
+         <h2 class="configuration-title">Gauge Values</h2>
+          <div class="chart-container">
+            <canvas id="spiderChart"></canvas>
+        </div>
+    </div>
+ </div>
+ <button class="clear-all-button">Clear All</button>
+
+<script>
+    // Get the main container for the configurator panels
+    const configuratorContainer = document.querySelector('.configurator-container');
+    // Get the button to clear all selections
+    const clearAllButton = document.querySelector('.clear-all-button');
+    // Get the table body where the configuration summary will be displayed
+    const configurationTableBody = document.querySelector('.configuration-table-body');
+    // Get the canvas element where the spider chart will be rendered
+    const spiderChartCanvas = document.getElementById('spiderChart');
+    // Variable to hold the chart object
+    let spiderChart;
+
+
+  // Function to create a gauge element
+    function createGauge(min, max, value, title) {
+       // Create the wrapper div
+       const gaugeWrapper = document.createElement('div');
+       gaugeWrapper.classList.add('gauge-wrapper');
+
+       // Create the title div
+       const gaugeTitle = document.createElement('div');
+       gaugeTitle.classList.add('gauge-title');
+       gaugeTitle.textContent = title;
+       // Add the title to the wrapper
+        gaugeWrapper.appendChild(gaugeTitle);
+
+
+       // Create the container div
+       const gaugeContainer = document.createElement('div');
+       gaugeContainer.classList.add('gauge-container');
+       // Add the container to the wrapper
+      gaugeWrapper.appendChild(gaugeContainer);
+
+      // Create the background div
+      const gaugeBg = document.createElement('div');
+       gaugeBg.classList.add('gauge-bg');
+      // Add the background to the container
+      gaugeContainer.appendChild(gaugeBg);
+
+
+       // Create the bar div
+      const gaugeBar = document.createElement('div');
+       gaugeBar.classList.add('gauge-bar');
+      // Add the bar to the container
+      gaugeContainer.appendChild(gaugeBar);
+
+      // Create the label div
+      const gaugeLabel = document.createElement('div');
+        gaugeLabel.classList.add('gauge-label');
+      // Add the label to the wrapper
+       gaugeWrapper.appendChild(gaugeLabel);
+
+       // Initialise the gauge
+       updateGauge(gaugeBar, gaugeLabel, min, max, value);
+
+       return gaugeWrapper;
+    }
+
+      // Function to update a gauge element
+      function updateGauge(gaugeBar, gaugeLabel, min, max, value) {
+        // Normalise the value between min and max
+        const normalizedValue = Math.min(Math.max(value, min), max);
+        // Calculate the percentage of the gauge
+        const percentage = ((normalizedValue - min) / (max - min)) * 100;
+        // Update the width of the bar to the calculated percentage
+        gaugeBar.style.width = `${percentage}%`;
+        // Update the label text
+        gaugeLabel.textContent = `${normalizedValue} ${gaugeLabel.dataset.unit || ''} `;
+      }
+
+    // Capability data - defines each configurable element
+    const capabilities = [
+        {
+            id: 'processor',
+            title: 'Processor',
+            options: {
+                'i5': { spec: '2.5 GHz', gauge: { min: 0, max: 4, value: 2.5 , unit: "GHz", title: "Clock Speed"} },
+                'i7': { spec: '3.2 GHz', gauge: { min: 0, max: 4, value: 3.2 , unit: "GHz" , title: "Clock Speed"} },
+                'i9': { spec: '4.0 GHz', gauge: { min: 0, max: 4, value: 4.0 , unit: "GHz" , title: "Clock Speed"} },
+               'i11': { spec: '4.5 GHz', gauge: { min: 0, max: 5, value: 4.5, unit: "GHz", title: "Clock Speed"} },
+            },
+           rules: {},
+        },
+        {
+            id: 'memory',
+            title: 'Memory',
+            options: {
+                '8GB': { spec: '8 GB DDR4', gauge: { min: 0, max: 16, value: 8, unit: "GB", title: "Memory"} },
+                '16GB': { spec: '16 GB DDR4', gauge: { min: 0, max: 16, value: 16, unit: "GB", title: "Memory"} },
+             },
+            rules: {
+                 'processor': {
+                   'i5': {
+                    '8GB': true,
+                    '16GB': false,
+                   },
+                    'i7': {
+                    '8GB': true,
+                    '16GB': true,
+                   },
+                   'i9': {
+                     '8GB': true,
+                    '16GB': true,
+                   },
+                   'i11': {
+                    '8GB': true,
+                     '16GB': true,
+                    },
+                 }
+            }
+        },
+      {
+            id: 'storage',
+            title: 'Storage',
+            options: {
+                '500GB SSD': { spec: '500 GB SSD', gauge: {min: 0, max: 1000, value: 500, unit: "GB", title: "Capacity"}},
+                '1TB SSD': { spec: '1 TB SSD', gauge: {min: 0, max: 1000, value: 1000, unit: "GB", title: "Capacity"} },
+                '2TB SSD': { spec: '2 TB SSD', gauge: {min: 0, max: 2000, value: 2000, unit: "GB", title: "Capacity"} },
+                  '4TB SSD': { spec: '4 TB SSD', gauge: {min: 0, max: 4000, value: 4000, unit: "GB", title: "Capacity"} }
+            },
+           rules: {},
+       },
+      {
+            id: 'display',
+            title: 'Display',
+            options: {
+                '15inch': { spec: '15 inch LCD', gauge: {min: 10, max: 20, value: 15, unit: "in", title: "Size"} },
+             },
+           rules: {},
+       },
+        {
+            id: 'graphics',
+            title: 'Graphics',
+            options: {
+                'Integrated': { spec: 'Integrated Graphics', gauge: {min: 0, max: 10, value: 1, unit: "Perf", title: "Performance"}  },
+                'Dedicated': { spec: 'Dedicated Graphics', gauge: {min: 0, max: 10, value: 8, unit: "Perf", title: "Performance"}},
+            },
+            rules: {},
+        },
+       {
+            id: 'keyboard',
+            title: 'Keyboard',
+            options: {
+                'Standard': { spec: 'Standard Keyboard',  gauge: {min: 0, max: 5, value: 2, unit: "Comfort", title: "Comfort"} },
+                 'Mechanical': { spec: 'Mechanical Keyboard',  gauge: {min: 0, max: 5, value: 4, unit: "Comfort", title: "Comfort"} },
+                  'Ergonomic': { spec: 'Ergonomic Keyboard',  gauge: {min: 0, max: 5, value: 5, unit: "Comfort", title: "Comfort"} },
+            },
+           rules: {},
+       },
+      {
+          id: 'mouse',
+          title: 'Mouse',
+          options: {
+              'Standard': { spec: 'Standard Mouse', gauge: {min: 0, max: 5, value: 2, unit: "Comfort", title: "Comfort"} },
+              'Gaming': { spec: 'Gaming Mouse', gauge: {min: 0, max: 5, value: 4, unit: "Comfort", title: "Comfort"} },
+            'Ergonomic Mouse': { spec: 'Ergonomic Mouse', gauge: {min: 0, max: 5, value: 5, unit: "Comfort", title: "Comfort"}},
+            },
+         rules: {},
+      },
+      {
+        id: 'operatingSystem',
+        title: 'Operating System',
+           options: {
+                'Windows': { spec: 'Windows 10/11', gauge: {min: 0, max: 10, value: 7, unit: "Ease", title: "Ease of use"}},
+                'MacOS': { spec: 'MacOS', gauge: {min: 0, max: 10, value: 8, unit: "Ease", title: "Ease of use"}},
+               'Linux': { spec: 'Linux', gauge: {min: 0, max: 10, value: 4, unit: "Ease", title: "Ease of use"}},
+
+           },
+            rules: {},
+     },
+   {
+            id: 'warranty',
+            title: 'Warranty',
+            options: {
+              '1 Year': { spec: '1 year', gauge: {min: 0, max: 3, value: 1, unit: "Years", title: "Duration"}},
+                '2 Year': { spec: '2 years', gauge: {min: 0, max: 3, value: 2, unit: "Years", title: "Duration"} },
+               '3 Year': { spec: '3 years', gauge: {min: 0, max: 3, value: 3, unit: "Years", title: "Duration"} },
+             },
+            rules: {},
+     },
+    {
+        id: 'connectivity',
+        title: 'Connectivity',
+            options: {
+               'Bluetooth': { spec: 'Bluetooth 5.0', gauge: {min: 0, max: 10, value: 8, unit: "Perf", title: "Performance"}},
+               'Wifi': { spec: 'Wifi 6', gauge: {min: 0, max: 10, value: 9, unit: "Perf", title: "Performance"}},
+               'Ethernet': { spec: 'Gigabit Ethernet', gauge: {min: 0, max: 10, value: 10, unit: "Perf", title: "Performance"}},
+                 '4G': { spec: '4G', gauge: {min: 0, max: 10, value: 6, unit: "Perf", title: "Performance"}},
+                 '5G': { spec: '5G', gauge: {min: 0, max: 10, value: 7, unit: "Perf", title: "Performance"}},
+                'Thunderbolt': { spec: 'Thunderbolt 4', gauge: {min: 0, max: 10, value: 9, unit: "Perf", title: "Performance"}},
+                 'USB-A': { spec: 'USB-A', gauge: {min: 0, max: 10, value: 8, unit: "Perf", title: "Performance"}},
+               'USB-C': { spec: 'USB-C', gauge: {min: 0, max: 10, value: 8, unit: "Perf", title: "Performance"}},
+               'HDMI': { spec: 'HDMI 2.1', gauge: {min: 0, max: 10, value: 8, unit: "Perf", title: "Performance"}},
+              'DisplayPort': { spec: 'DisplayPort 1.4', gauge: {min: 0, max: 10, value: 8, unit: "Perf", title: "Performance"}},
+              'SD Card': { spec: 'SD Card Reader', gauge: {min: 0, max: 10, value: 7, unit: "Perf", title: "Performance"}},
+              'Audio Jack': { spec: 'Audio Jack', gauge: {min: 0, max: 10, value: 6, unit: "Perf", title: "Performance"}},
+           },
+            rules: {},
+    },
+      {
+            id: 'colour',
+            title: 'Colour',
+            options: {
+              'Black': { spec: 'Black' },
+                'Silver': { spec: 'Silver' },
+               'White': { spec: 'White' },
+                'Red': { spec: 'Red' },
+                 'Blue': { spec: 'Blue' },
+                 'Green': { spec: 'Green' },
+                 'Yellow': { spec: 'Yellow' },
+                 'Orange': { spec: 'Orange' },
+                'Purple': { spec: 'Purple' },
+               'Pink': { spec: 'Pink' },
+             'Gold': { spec: 'Gold' },
+              'Custom': { spec: 'Custom' },
+            },
+           rules: {},
+        },
+    ];
+
+    // Object to store the selected option for each capability
+    const selectedOptions = {};
+
+    // Function to create a single capability panel
+    function createCapabilityPanel(capability) {
+        // Create the panel div
+        const panel = document.createElement('div');
+        panel.classList.add('capability-panel');
+        // Store the capability ID on the panel for easy access later
+        panel.dataset.capabilityId = capability.id;
+
+        // Create the title of the panel
+        const title = document.createElement('h2');
+        title.classList.add('capability-title');
+        title.textContent = capability.title;
+        // Add the title to the panel
+        panel.appendChild(title);
+
+        // Create a container for the options
+        const optionsContainer = document.createElement('div');
+         optionsContainer.classList.add('options-container');
+          // Add options container to the panel
+          panel.appendChild(optionsContainer);
+
+          // Calculate how many options to display per row
+        const numOptions = Object.keys(capability.options).length;
+       let optionsPerRow;
+        if (numOptions <= 2)
+        {
+          optionsPerRow = numOptions;
+        }
+        else if (numOptions == 3)
+        {
+          optionsPerRow = 3.1;
+        }
+        else if (numOptions == 4)
+        {
+          optionsPerRow = 4.3;
+        }
+         else {
+          optionsPerRow = Math.ceil(Math.sqrt(numOptions));
+        }
+
+        // Iterate over the options and create buttons
+        let i = 0;
+        for (const option in capability.options) {
+            const button = document.createElement('button');
+           button.classList.add('option-button');
+          button.textContent = option;
+          button.value = option;
+            button.style.width = `${100/optionsPerRow - 10/optionsPerRow}%`
+             // Add event listener to handle option selection
+             button.addEventListener('click', () => handleOptionChange(option, capability.id));
+             // Add button to options container
+             optionsContainer.appendChild(button);
+            i++;
+        }
+
+        // Create a div to display the specification of the selected option
+        const specDiv = document.createElement('div');
+        specDiv.classList.add('specification');
+        // Add specification to the panel
+        panel.appendChild(specDiv);
+
+        // Create a div to display the gauge element
+        const gaugeDiv = document.createElement('div');
+        // Add the gauge element to the panel
+        panel.appendChild(gaugeDiv);
+
+
+        // Function to update the displayed info (spec, gauge)
+      function updateDisplay(selectedOption)
+        {
+            // Check if an option has been selected
+          if (selectedOption && capability.options[selectedOption])
+            {
+              // Update the specification text
+            specDiv.textContent = "" //capability.options[selectedOption].spec;
+            // Clear any existing gauge
+            gaugeDiv.innerHTML = "";
+
+            // Check for gauge data and a numeric value
+              if (capability.options[selectedOption].gauge && typeof capability.options[selectedOption].gauge.value === 'number')
+              {
+                 // Create a gauge element
+                 const gaugeElement = createGauge(
+                   capability.options[selectedOption].gauge.min,
+                   capability.options[selectedOption].gauge.max,
+                   capability.options[selectedOption].gauge.value,
+                   capability.options[selectedOption].gauge.title
+                 );
+                // Add unit data to the gauge label
+                gaugeElement.querySelector(".gauge-label").dataset.unit = capability.options[selectedOption].gauge.unit;
+                // Add the gauge element to the gauge container
+                gaugeDiv.appendChild(gaugeElement);
+              }
+            }
+            else {
+              // If no option is selected, clear the specification and gauge
+              specDiv.textContent = "";
+              gaugeDiv.innerHTML = "";
+            }
+        }
+         // Initialise the display of the panel
+         updateDisplay();
+         // Store the updateDisplay function on the panel so it can be updated later
+         panel.updateDisplay = updateDisplay;
+        return panel;
+    }
+
+
+    // Function to update the configuration summary table
+ function updateConfigurationSummary() {
+        // Clear the table body
+        configurationTableBody.innerHTML = '';
+
+      // Array to store chart data
+      const gaugeData = [];
+      // Array to store chart labels
+      const gaugeLabels = [];
+        // Array to store the min values of each data point for the chart
+        const gaugeMins = [];
+        // Array to store the max values of each data point for the chart
+        const gaugeMaxs = [];
+
+
+        // Iterate over each capability to check for selections
+        for (const capability of capabilities)
+        {
+          // Check if an option has been selected
+         if(selectedOptions[capability.id])
+          {
+            // Get the option object
+           const option = capability.options[selectedOptions[capability.id]];
+           // Create a new row in the table
+           const row = document.createElement('tr');
+            // Create a cell for the capability title
+            const capabilityCell = document.createElement('td');
+            capabilityCell.textContent = capability.title;
+            // Add the cell to the row
+            row.appendChild(capabilityCell);
+
+           // Create a cell for the option title
+           const optionCell = document.createElement('td');
+            optionCell.textContent = selectedOptions[capability.id];
+            // Add the cell to the row
+            row.appendChild(optionCell);
+
+           // Create a cell for the value (gauge value, if it exists)
+            const valueCell = document.createElement('td');
+             // Check for gauge data
+              if (option.gauge && typeof option.gauge.value === 'number')
+              {
+                // Set the content if a gauge value exists
+                 valueCell.textContent = `${option.gauge.value} ${option.gauge.unit}`;
+                 // Add gauge data, label, min, max values for the chart
+                 gaugeData.push(option.gauge.value);
+                  gaugeLabels.push(capability.title);
+                    gaugeMins.push(option.gauge.min)
+                     gaugeMaxs.push(option.gauge.max)
+              }
+               else
+              {
+                // Set to an empty string if there is no gauge value
+                 valueCell.textContent = "";
+              }
+            // Add the cell to the row
+             row.appendChild(valueCell);
+
+             // Add the row to the table
+            configurationTableBody.appendChild(row);
+           }
+        }
+        // Update the spider chart
+       updateSpiderChart(gaugeData, gaugeLabels, gaugeMins, gaugeMaxs);
+    }
+
+
+   // Function to update the spider chart
+    function updateSpiderChart(data, labels, mins, maxs) {
+        // Destroy existing chart to prevent issues
+        if (spiderChart) {
+            spiderChart.destroy();
+        }
+       // Exit the method if no data is present
+       if (data.length === 0) {
+            return;
+        }
+
+      // Normalise the data points to be between 0 and 1
+        const normalizedData = data.map((value, index) => {
+            const min = mins[index];
+            const max = maxs[index];
+            return (value - min) / (max - min);
+        });
+
+
+      // Create a new radar chart using chart.js
+        spiderChart = new Chart(spiderChartCanvas, {
+            type: 'radar',
+            data: {
+                labels: labels, // Use labels array
+                datasets: [{
+                    label: 'Configuration Values',
+                    data: normalizedData,
+                    backgroundColor: 'rgba(163, 246, 91, 0.2)', // Lime Green with some transparency
+                     borderColor: '#a3f65b', // Lime green border
+                   borderWidth: 2, // Line width
+                     pointBackgroundColor: '#a3f65b', // Lime green points
+                     pointBorderColor: '#fff', // White borders of the points
+                     pointBorderWidth: 1, // Border width of the point circles
+                }]
+            },
+             options: {
+              scales: {
+                r: {
+                 min: 0,
+                  max: 1,
+                  ticks: {
+                     display: false, // hide the radial axis ticks
+                    },
+                   angleLines: {
+                    color: '#fff', // White line of the radial scale
+                  },
+                  grid: {
+                       color: '#fff', // White grid lines of the scale
+                    },
+                   pointLabels: {
+                      color: '#a3f65b' // Lime green colour of the point label text
+                     }
+                  },
+                 },
+                  plugins: {
+                    legend: {
+                      labels: {
+                        color: '#a3f65b', // Lime green legend text
+                        font: {
+                          size: 14 // Set legend font size
+                           }
+                      }
+                    },
+                },
+            }
+        });
+
+}
+
+  // Function to clear all selected options
+  function clearAllSelections() {
+        // Iterate through the capabilities and clear the selections
+         capabilities.forEach(capability => {
+          selectedOptions[capability.id] = undefined;
+          // Get the panel for this capability
+          const panel = document.querySelector(`[data-capability-id="${capability.id}"]`);
+           // Get all the buttons in the panel
+            const buttons = panel.querySelectorAll('.option-button');
+            // Remove the selected class from each button
+            buttons.forEach(button => button.classList.remove('selected'));
+            // Update the display of the panel to reset the spec and gauge
+             panel.updateDisplay();
+         });
+         // Update the configuration summary table
+          updateConfigurationSummary();
+        // Apply the rules
+         applyRules();
+    }
+
+       // Function to enforce the rules for dependant selections
+        function applyRules()
+        {
+            // Iterate through each capability
+          capabilities.forEach((capability) => {
+             // Check if the capability has rules defined
+          if (capability.rules) {
+            // Iterate through each dependency in the rules
+            for (const depId in capability.rules) {
+              // Get the currently selected value of the dependent capability
+              const depValue = selectedOptions[depId];
+              // Get the panel for the current capability
+              const panel = document.querySelector(`[data-capability-id="${capability.id}"]`);
+                // Get the buttons in this panel
+               const buttons = panel.querySelectorAll('.option-button');
+
+               // Iterate through each option button
+              buttons.forEach(button => {
+                // Check if the dependency has a value, if it has any rules defined for the current option
+               const valid = !depValue || !capability.rules[depId][depValue] || capability.rules[depId][depValue][button.value];
+                  // Disable the button if it's not valid
+                  button.disabled = !valid;
+              });
+
+              // Check if any of the buttons are still enabled after the rule checks
+              if(panel.querySelector('.option-button:not([disabled])'))
+                {
+                    // Check if a previous selection exists
+                    const previousSelection = panel.querySelector('.option-button.selected')?.value;
+                  // Check if the previous selection is still valid
+                   if(panel.querySelector(`.option-button[value='${previousSelection}']:not([disabled])`))
+                 {
+                   //Do nothing the previous selection is still valid
+                   }
+                   else{
+                     // Get the new selection
+                     const newSelection = panel.querySelector('.option-button:not([disabled])').value;
+                     // Trigger the option change with the new selection
+                     handleOptionChange(newSelection, capability.id);
+                   }
+              } else
+              {
+                // If no valid option exists, deselect the current option
+                   handleOptionChange(undefined, capability.id)
+              }
+            }
+          }
+        });
+     }
+
+   // Function to handle changes to selected options
+   function handleOptionChange(selectedOption, capabilityId) {
+        // Get the panel for the given capability
+        const panel = document.querySelector(`[data-capability-id="${capabilityId}"]`);
+        // Get the buttons from this panel
+        const buttons = panel.querySelectorAll('.option-button');
+        // Get the current selected value for this capability
+        const currentSelection = selectedOptions[capabilityId];
+
+       // Check if the newly clicked option is the same as the previous selection
+       if(selectedOption === currentSelection){
+            // If it is, we need to deselect it
+           selectedOptions[capabilityId] = undefined
+           // Set the selectedOption to undefined
+          selectedOption = undefined;
+        }
+        else{
+           // If it is not the same, store the selection in the array
+            selectedOptions[capabilityId] = selectedOption;
+        }
+
+
+      // Iterate through the buttons in the panel
+      buttons.forEach(button => {
+          // Remove the selected class from the button
+          button.classList.remove('selected');
+            // If the button value matches the selected option
+            if(button.value === selectedOption)
+              {
+                 // Add the selected class to the button
+                  button.classList.add('selected');
+              }
+          })
+
+         // Update the panel to display the new spec and gauge data
+         panel.updateDisplay(selectedOption);
+         // Update the summary table
+         updateConfigurationSummary();
+         // Re apply the rules for any dependant values
+        applyRules();
+    }
+
+
+  // Create panels and add them to the container.
+    capabilities.forEach(capability => {
+        const panel = createCapabilityPanel(capability);
+        configuratorContainer.appendChild(panel);
+    });
+
+     // Initialise with no selection
+    capabilities.forEach(capability => {
+      selectedOptions[capability.id] = undefined;
+     });
+     // Apply any rules
+     applyRules();
+     // Update the configuration summary table
+  updateConfigurationSummary();
+
+  // Add event listener to the clear all button
+    clearAllButton.addEventListener('click', clearAllSelections);
+
+
+</script>
+</body>
+</html>
